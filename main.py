@@ -4,7 +4,7 @@ from time import sleep
 
 
 class WaveFunctionCollapse:
-    def __init__(self, field_size, grid_window):
+    def __init__(self, field_size, grid_window=None):
         self.rules = {
             4: {3, 4},  # mountains
             3: {4, 3, 2},  # forest
@@ -25,7 +25,12 @@ class WaveFunctionCollapse:
 
         self.field_size = field_size
         self.to_collapse = list()
+        self.print()
         self.choose(2, 2, [4])
+        print("------------------------------")
+        self.print()
+        print("------------------------------")
+
         self.cycle()
 
     def cycle(self):
@@ -45,10 +50,11 @@ class WaveFunctionCollapse:
                 cur = self.field[x][y]
 
                 if type(cur) is int:
+                    print("int!")
                     continue
                 if len(cur) != 4:
-                    print("isnt 4:", cur)
-                if minn[2] > len(cur) > 1:
+                    print("isnt 4:", cur ,x, y)
+                if minn[2] > len(cur) >= 1:
                     print("updated minn", cur)
                     minn = (x, y, len(cur))
         print(minn)
@@ -73,6 +79,8 @@ class WaveFunctionCollapse:
             self.changed.append(current)
 
             if self.window is not None:
+                if type(self.field[current[0]][current[1]]) != int:
+                    self.window.change_value(current[0], current[1], len(self.field[current[0]][current[1]]))
                 self.window.cycle_color(current[0], current[1])
                 self.window.external_update()
 
@@ -118,6 +126,7 @@ class WaveFunctionCollapse:
             # input("continue?")
             # print("------------------------")
         # self.choose(x, y, self.field[x][y][0])
+        print("-------------------------------------", self.to_collapse)
         self.print()
 
     def choose(self, x, y, choice):
@@ -151,8 +160,8 @@ class WaveFunctionCollapse:
 
 
 def main():
-    # window = GridWindow(5, 50)
-    WFC = WaveFunctionCollapse(5, None)
+    window = GridWindow(5, 50)
+    WFC = WaveFunctionCollapse(5, window)
 
     WFC.choose(2, 2, 1)
     WFC.print()
