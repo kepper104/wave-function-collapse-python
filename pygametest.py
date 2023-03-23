@@ -1,5 +1,5 @@
 import pygame
-
+from random import randint
 WHITE = (255, 255, 255)
 GRAY = (128, 128, 128)
 GREEN = (0, 255, 0)
@@ -67,7 +67,7 @@ class GridWindow:
         self.screen.fill(WHITE)
         self.draw_grid()
         pygame.display.update()
-        print("updated")
+        # print("updated")
 
     def change_color(self, row, col, color):
         self.grid[row][col]['color'] = color
@@ -75,9 +75,10 @@ class GridWindow:
     def change_value(self, row, col, value):
         self.grid[row][col]['value'] = value
 
-    def cycle_color(self, row, col):
-        prev_color = self.grid[row][col]['color']
-        self.grid[row][col]['color']  = colors[colors.index(prev_color) + 1]
+    def cycle_color(self, row, col, color):
+        self.grid[row][col]['color'] = color
+        # prev_color = self.grid[row][col]['color']
+        # self.grid[row][col]['color']  = colors[colors.index(prev_color) + 1]
 
 #
 # window = GridWindow(5, 40)

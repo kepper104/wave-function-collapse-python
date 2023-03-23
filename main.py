@@ -1,15 +1,20 @@
 from random import choice
 from pygametest import GridWindow
-from time import sleep
+from time import perf_counter
 
-
+COLORS = {
+    4: (50, 50, 50),
+    3: (105, 116, 60),
+    2: (255, 223, 39),
+    1: (39, 120, 255)
+}
 class WaveFunctionCollapse:
     def __init__(self, field_size, grid_window=None):
         self.rules = {
             4: {3, 4},  # mountains
             3: {4, 3, 2},  # forest
-            2: {3, 2, 1},  # field
-            1: {2, 1}  # water
+            2: {3, 2, 1},  # beach
+            1: {1}  # water
         }
 
         self.window = grid_window
@@ -25,19 +30,31 @@ class WaveFunctionCollapse:
 
         self.field_size = field_size
         self.to_collapse = list()
-        self.print()
-        self.choose(2, 2, [4])
-        print("------------------------------")
-        self.print()
-        print("------------------------------")
+        # self.print()
+        self.choose(self.field_size // 2, self.field_size // 2,  [4])
+        # print("------------------------------")
+        # self.print()
+        # print("------------------------------")
 
         self.cycle()
 
     def cycle(self):
-        min_x, min_y, e = self.find_lowest_entropy()
-        self.collapse(min_x, min_y)
-
-        self.propagate(min_x, min_y)
+        count = 0
+        min_x, min_y = self.field_size // 2, self.field_size // 2
+        while not self.is_solved():
+            t1 = perf_counter()
+            count += 1
+            self.collapse(min_x, min_y)
+            self.propagate(min_x, min_y)
+            min_x, min_y, e = self.find_lowest_entropy()
+            t2 = perf_counter()
+            print(f"Cycle {count}, time elapsed: {(t2 - t1):.3f}")
+            self.window.external_update()
+            # print("---------------------------------------------------")
+            # self.print()
+            # input()
+        self.print()
+        input("We are done!")
 
     def print(self):
         for i in self.field:
@@ -50,14 +67,11 @@ class WaveFunctionCollapse:
                 cur = self.field[x][y]
 
                 if type(cur) is int:
-                    print("int!")
                     continue
-                if len(cur) != 4:
-                    print("isnt 4:", cur ,x, y)
-                if minn[2] > len(cur) >= 1:
-                    print("updated minn", cur)
+
+                if minn[2] > len(cur) > 1:
                     minn = (x, y, len(cur))
-        print(minn)
+
         return minn
 
     def collapse(self, x, y):
@@ -79,12 +93,22 @@ class WaveFunctionCollapse:
             self.changed.append(current)
 
             if self.window is not None:
-                if type(self.field[current[0]][current[1]]) != int:
-                    self.window.change_value(current[0], current[1], len(self.field[current[0]][current[1]]))
-                self.window.cycle_color(current[0], current[1])
-                self.window.external_update()
+                a = self.field[current[0]][current[1]]
+                if type(a) == int:
+                    # self.window.change_value(current[0], current[1], a)
+                    self.window.cycle_color(current[0], current[1], COLORS[a])
 
-                sleep(0.5)
+                elif len(a) == 1:
+                    # self.window.change_value(current[0], current[1], a[0])
+                    self.window.cycle_color(current[0], current[1], COLORS[a[0]])
+                # self.window.external_update()
+
+                # else:
+                #     length = len(a)
+
+                # self.window.change_value(current[0], current[1], length)
+
+                # sleep(0.1)
 
             adjacent_cells = self.get_adjacent_cells(*current)
             for i in adjacent_cells:
@@ -117,7 +141,15 @@ class WaveFunctionCollapse:
                 else:
                     for j in current_adjacent:
                         c.add(j)
-                self.field[i[0]][i[1]] = list(c.intersection(possible_variants))
+                res_options = c.intersection(possible_variants)
+                if len(res_options) == 0:
+                    print("ZERO LIST")
+                    self.print()
+                    self.window.external_update()
+                    # input()
+                    res_options.clear()
+                    res_options.add(1)
+                self.field[i[0]][i[1]] = list(res_options)
                 if i not in self.to_collapse and i not in self.changed:
                     self.changed.append(i)
                     self.to_collapse.append(i)
@@ -126,8 +158,8 @@ class WaveFunctionCollapse:
             # input("continue?")
             # print("------------------------")
         # self.choose(x, y, self.field[x][y][0])
-        print("-------------------------------------", self.to_collapse)
-        self.print()
+        # print("-------------------------------------", self.to_collapse)
+        # self.print()
 
     def choose(self, x, y, choice):
         # if choice not in self.field[y][x]:
@@ -141,8 +173,9 @@ class WaveFunctionCollapse:
     def is_solved(self):
         for x in range(self.field_size):
             for y in range(self.field_size):
-                if len(self.field[y][x]) > 1:
-                    return False
+                if type(self.field[x][y]) != int:
+                    if len(self.field[y][x]) > 1:
+                        return False
         return True
 
     def get_adjacent_cells(self, x, y):
@@ -160,15 +193,17 @@ class WaveFunctionCollapse:
 
 
 def main():
-    window = GridWindow(5, 50)
-    WFC = WaveFunctionCollapse(5, window)
+    SIZE = 20
+    window = GridWindow(SIZE, 50)
+    # window = None
+    WFC = WaveFunctionCollapse(SIZE, window)
 
-    WFC.choose(2, 2, 1)
-    WFC.print()
+    # WFC.choose(2, 2, 1)
+    # WFC.print()
     print("------------------------")
 
-    WFC.propagate(2, 2)
-    WFC.propagate(3, 2)
+    # WFC.propagate(2, 2)
+    # WFC.propagate(3, 2)
     # for index, i in enumerate(a):
     #     print(WFC.choose(i[0], i[1], index))
     # WFC.print()
